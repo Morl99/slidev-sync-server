@@ -91,6 +91,7 @@ jobs:
       - name: Compare against signed SBOM of latest
         id: release
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EXPECTED_ARCHIVE: ${{ needs.verify.outputs.archive }}
           FINGERPRINT: ${{ needs.verify.outputs.fingerprint }}
         run: |
@@ -100,7 +101,12 @@ jobs:
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           echo "image=$image" >> "$GITHUB_OUTPUT"
           changed=true
-          if docker buildx imagetools inspect "$image:latest" > "$RUNNER_TEMP/baseline.txt" 2>&1; then
+          # A missing package is the only bootstrap case. Registry/network errors fail closed.
+          package_status=$(curl --silent --show-error --output "$RUNNER_TEMP/package.json" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/users/${GITHUB_REPOSITORY_OWNER}/packages/container/${GITHUB_REPOSITORY#*/}")
+          if [ "$package_status" = 200 ]; then
+            docker buildx imagetools inspect "$image:latest" >/dev/null
             cosign verify-attestation --type cyclonedx \
               --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/container.yml@refs/heads/main" \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com \
@@ -109,8 +115,8 @@ jobs:
             jq -cS '.predicate | {source: [.metadata.properties[]? | select(.name == "slidev.sourceHash") | .value], packages: [.components[] | {type,name,version,purl,hashes: ((.hashes // []) | sort_by(.alg,.content))}] | sort_by(.purl,.name,.version)}' "$RUNNER_TEMP/statement.json" > "$RUNNER_TEMP/previous-dependencies.json"
             previous=$(sha256sum "$RUNNER_TEMP/previous-dependencies.json" | cut -d' ' -f1)
             if [ "$previous" = "$FINGERPRINT" ]; then changed=false; fi
-          elif ! grep -Eqi 'manifest unknown|name unknown|not found' "$RUNNER_TEMP/baseline.txt"; then
-            cat "$RUNNER_TEMP/baseline.txt" >&2
+          elif [ "$package_status" != 404 ]; then
+            echo "Cannot inspect GHCR package: HTTP $package_status" >&2
             exit 1
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
