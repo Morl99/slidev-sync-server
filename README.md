@@ -33,11 +33,11 @@ and runs as a non-root user. Published images currently target **linux/amd64**.
 A [simple Helm chart](charts/slidev-sync-server/README.md) is included for Kubernetes:
 
 ```bash
-helm upgrade --install slidev-sync ./charts/slidev-sync-server \
+helm upgrade --install slidev-sync oci://ghcr.io/morl99/charts/slidev-sync-server \
   --namespace slidev-sync --create-namespace
 ```
 
-Run this from a checkout of this repository. See the chart guide for configuration,
+See the chart guide for configuration,
 WebSocket mode and deployment considerations.
 
 ## Configuration

@@ -3,7 +3,11 @@ kind: Deployment
 metadata:
   name: {{ include "slidev-sync-server.name" . }}
   labels:
-    {{- include "slidev-sync-server.labels" . | nindent 4 }}
+    {{- include "slidev-sync-server.extraLabels" (dict "root" . "labels" .Values.deployment.labels) | nindent 4 }}
+  {{- with .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: 1
   strategy:
@@ -14,7 +18,11 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "slidev-sync-server.selector" . | nindent 8 }}
+        {{- include "slidev-sync-server.podLabels" . | nindent 8 }}
+      {{- with .Values.pod.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       automountServiceAccountToken: false
       {{- with .Values.imagePullSecrets }}

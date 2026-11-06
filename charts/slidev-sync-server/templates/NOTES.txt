@@ -6,3 +6,6 @@ For local access:
 
 Only one replica is supported. Restarts/upgrades discard synchronization state.
 Configure TLS and access control in your deployment.
+
+{{ if .Values.ingress.enabled }}An Ingress is enabled. Configure your controller for long-lived SSE/WebSocket connections.
+{{ end }}

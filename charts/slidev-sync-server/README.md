@@ -1,9 +1,9 @@
 # Slidev sync server Helm chart
 
-Deploy the server into an existing Kubernetes cluster from a local checkout:
+Deploy the server into an existing Kubernetes cluster:
 
 ```bash
-helm upgrade --install slidev-sync ./charts/slidev-sync-server \
+helm upgrade --install slidev-sync oci://ghcr.io/morl99/charts/slidev-sync-server \
   --namespace slidev-sync --create-namespace
 ```
 
@@ -44,9 +44,10 @@ and the runtime's default seccomp profile. They do not mount a service-account
 token. TCP probes work with both transports and check whether the listening
 socket is available, rather than application-level synchronization.
 
-The chart creates no Ingress. Provide TLS, authentication and external routing
-in your deployment; disable proxy buffering for SSE and enable WebSocket
-forwarding when appropriate. The default node selector matches the architecture
+An optional Ingress supports IngressClass, hosts, paths and TLS secrets. An Ingress
+controller must already be installed. Supply controller-specific annotations to
+disable SSE buffering and configure suitable connection timeouts/WebSocket
+forwarding. Authentication and certificate issuance remain deployment concerns. The default node selector matches the architecture
 of the currently published images.
 
 Uninstall with:
@@ -54,3 +55,55 @@ Uninstall with:
 ```bash
 helm uninstall slidev-sync --namespace slidev-sync
 ```
+
+The OCI chart is published to GHCR after chart checks pass on the default branch.
+Use `--version CHART_VERSION` to select a release. Published versions are never
+overwritten; identical content skips the upload, while changed content requires
+a chart version bump. The workflow signs each chart digest using keyless Cosign.
+The GHCR chart package must be public for anonymous installation.
+
+To install from a checkout instead, use `./charts/slidev-sync-server` as the chart
+argument. This is also useful before the first chart publication.
+
+## Labels, annotations and Ingress
+
+Global `commonLabels` are combined with resource-specific `deployment.labels`,
+`pod.labels`, `serviceMetadata.labels` and `ingress.labels`. The matching
+`annotations` maps are supported per resource. Resource-specific labels override
+common labels; chart-owned selector/identity labels take precedence over both.
+
+Example override values (adapt the IngressClass and annotations to your controller):
+
+```yaml
+commonLabels:
+  team: presentations
+deployment:
+  annotations:
+    example.com/owner: platform
+pod:
+  annotations:
+    example.com/purpose: slide-sync
+serviceMetadata:
+  labels:
+    exposure: internal
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: slides.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: slides-tls
+      hosts:
+        - slides.example.com
+```
+
+The TLS secret must exist in the release namespace, or be provisioned by your
+certificate controller. Use the root path unless your proxy explicitly rewrites
+a prefix: the server has no configurable base path.
