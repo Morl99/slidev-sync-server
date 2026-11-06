@@ -47,3 +47,30 @@ Available environment variables:
 
 After building, run `pnpm test` to smoke-test SSE and WebSocket connections and state updates.
 GitHub Actions runs installation, build and smoke tests on pushes and pull requests.
+
+## Container image
+
+The image uses Node.js 24 on Alpine, runs as the `node` user and contains only
+compiled JavaScript and production dependencies.
+
+```bash
+docker run --rm -p 8080:8080 ghcr.io/morl99/slidev-sync-server:latest
+# WebSocket mode:
+docker run --rm -p 8080:8080 -e WS=true ghcr.io/morl99/slidev-sync-server:latest
+```
+
+Existing environment variables also apply to the container. No persistent volume is required;
+synchronization state is held in memory.
+
+Build and verify locally:
+
+```bash
+docker build -t slidev-sync-server:local .
+sh test/container-smoke.sh slidev-sync-server:local
+```
+
+The container workflow tests pull requests without publishing. Pushes to `main`
+publish `latest` and `sha-<commit>` tags to GHCR after the image smoke tests pass.
+Version tags (`v*`) publish the corresponding version tag. The workflow can also
+be started manually on `main`. Publication uses the repository `GITHUB_TOKEN`.
+The first GHCR package may need its visibility changed to public in package settings.
