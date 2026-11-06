@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "slidev-sync-server.name" . }}
+  labels:
+    {{- include "slidev-sync-server.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: server
+      port: {{ .Values.service.port }}
+      targetPort: server
+  selector:
+    {{- include "slidev-sync-server.selector" . | nindent 4 }}

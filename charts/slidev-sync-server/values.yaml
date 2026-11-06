@@ -1,0 +1,24 @@
+image:
+  repository: ghcr.io/morl99/slidev-sync-server
+  tag: latest
+  # Prefer a digest for reproducible deployments (sha256:...).
+  digest: ""
+  pullPolicy: Always
+imagePullSecrets: []
+service:
+  port: 80
+config:
+  websocket: false
+  debug: error
+  corsOrigin: "*"
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+# Published images currently support amd64 only.
+nodeSelector:
+  kubernetes.io/arch: amd64
+tolerations: []
+affinity: {}
