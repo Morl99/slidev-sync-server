@@ -1,0 +1,8 @@
+The server is reachable within the cluster at:
+  {{ include "slidev-sync-server.name" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}
+
+For local access:
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "slidev-sync-server.name" . }} 8080:{{ .Values.service.port }}
+
+Only one replica is supported. Restarts/upgrades discard synchronization state.
+Configure TLS and access control in your deployment.

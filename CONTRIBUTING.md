@@ -77,6 +77,20 @@ The multi-stage build runs the server tests before assembling the runtime image.
 Only compiled code and production dependencies are copied into the non-root
 Alpine runtime. npm and Yarn are removed from the runtime image.
 
+## Helm chart
+
+The chart lives in `charts/slidev-sync-server`. Validate changes with:
+
+```bash
+helm lint --strict charts/slidev-sync-server
+helm template smoke charts/slidev-sync-server
+helm template smoke charts/slidev-sync-server --set config.websocket=true
+```
+
+Keep the chart single-instance unless shared state is implemented. Bump its version
+in `Chart.yaml` when changing the chart. The chart is currently installed from source;
+there is no separate chart publishing workflow.
+
 ## Submitting a pull request
 
 Create a branch, keep the change focused and explain the problem it solves.

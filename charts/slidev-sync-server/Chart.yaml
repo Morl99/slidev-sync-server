@@ -1,0 +1,8 @@
+apiVersion: v2
+name: slidev-sync-server
+description: A small SSE/WebSocket synchronization server for Slidev.
+type: application
+version: 0.1.0
+home: https://github.com/Morl99/slidev-sync-server
+sources:
+  - https://github.com/Morl99/slidev-sync-server

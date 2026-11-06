@@ -28,6 +28,18 @@ The server listens on port 8080. Configure the addon to use your server's addres
 Choose the matching transport in the addon. The container uses Node.js on Alpine
 and runs as a non-root user. Published images currently target **linux/amd64**.
 
+## Kubernetes / Helm
+
+A [simple Helm chart](charts/slidev-sync-server/README.md) is included for Kubernetes:
+
+```bash
+helm upgrade --install slidev-sync ./charts/slidev-sync-server \
+  --namespace slidev-sync --create-namespace
+```
+
+Run this from a checkout of this repository. See the chart guide for configuration,
+WebSocket mode and deployment considerations.
+
 ## Configuration
 
 Pass environment variables using Docker's `-e NAME=value` option.
