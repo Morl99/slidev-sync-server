@@ -102,7 +102,7 @@ jobs:
           changed=true
           if docker buildx imagetools inspect "$image:latest" > "$RUNNER_TEMP/baseline.txt" 2>&1; then
             cosign verify-attestation --type cyclonedx \
-              --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/container.yml@refs/(heads/main|tags/v[^/]+)$" \
+              --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/container.yml@refs/heads/main" \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com \
               "$image:latest" > "$RUNNER_TEMP/previous.json"
             jq -r '.payload' "$RUNNER_TEMP/previous.json" | head -n1 | base64 -d > "$RUNNER_TEMP/statement.json"
