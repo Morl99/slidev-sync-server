@@ -3,7 +3,11 @@ kind: Service
 metadata:
   name: {{ include "slidev-sync-server.name" . }}
   labels:
-    {{- include "slidev-sync-server.labels" . | nindent 4 }}
+    {{- include "slidev-sync-server.extraLabels" (dict "root" . "labels" .Values.serviceMetadata.labels) | nindent 4 }}
+  {{- with .Values.serviceMetadata.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: ClusterIP
   ports:

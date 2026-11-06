@@ -10,3 +10,12 @@ app.kubernetes.io/instance: {{ .Release.Name | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | quote }}
 {{- end -}}
+
+{{- define "slidev-sync-server.extraLabels" -}}
+{{- $reserved := include "slidev-sync-server.labels" .root | fromYaml -}}
+{{- mergeOverwrite (dict) .root.Values.commonLabels .labels $reserved | toYaml -}}
+{{- end -}}
+{{- define "slidev-sync-server.podLabels" -}}
+{{- $reserved := include "slidev-sync-server.selector" . | fromYaml -}}
+{{- mergeOverwrite (dict) .Values.commonLabels .Values.pod.labels $reserved | toYaml -}}
+{{- end -}}

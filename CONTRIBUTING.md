@@ -88,8 +88,19 @@ helm template smoke charts/slidev-sync-server --set config.websocket=true
 ```
 
 Keep the chart single-instance unless shared state is implemented. Bump its version
-in `Chart.yaml` when changing the chart. The chart is currently installed from source;
-there is no separate chart publishing workflow.
+in `Chart.yaml` when changing the chart. The chart workflow lints and renders both transports on pull requests and
+packages the chart once. After merge it publishes that exact, checksum-verified
+archive to `ghcr.io/morl99/charts/slidev-sync-server` in a separate job with minimal
+publishing permissions and no repository checkout. Actions and the Helm download
+are pinned. Existing chart versions are compared by file contents, ignoring archive
+timestamps: identical packages skip upload; different contents require a version
+bump. The published OCI digest receives a keyless Cosign signature, which is verified
+before the workflow completes. Manual runs on the default branch can retry signing
+an interrupted publication without overwriting its chart package.
+
+To verify a chart signature, use Cosign with the exact chart digest and the workflow
+identity `https://github.com/Morl99/slidev-sync-server/.github/workflows/helm.yml@refs/heads/main`
+and issuer `https://token.actions.githubusercontent.com`.
 
 ## Submitting a pull request
 
