@@ -23,8 +23,8 @@ can help agree on the approach.
 
 ## Local setup
 
-Use **Node.js 24** (also recorded in `.node-version`) and **pnpm 12.18.0**,
-as pinned in `package.json`.
+Use the Node.js version recorded in `.node-version` and the pnpm version
+pinned in the `packageManager` field of `package.json`.
 
 ```bash
 git clone https://github.com/Morl99/slidev-sync-server.git
@@ -92,7 +92,7 @@ including findings without an available fix. Pull requests do not publish images
 ## Dependencies and releases
 
 Dependabot proposes npm and GitHub Actions updates weekly and Docker base-image
-updates daily. Node.js stays on major 24. Verified Dependabot Patch/Minor updates
+updates daily. The configured Node.js major version is retained. Verified Dependabot Patch/Minor updates
 can auto-merge once required checks pass; Major updates and unknown classifications
 remain manual. Digest updates are eligible when classified as Patch.
 
