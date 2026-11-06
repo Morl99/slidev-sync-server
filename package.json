@@ -14,8 +14,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node --experimental-specifier-resolution=node .",
-    "prepare": "npm run build"
+    "start": "node dist/index.js",
+    "prepare": "pnpm run build",
+    "test": "node --test test/*.test.mjs"
   },
   "keywords": [
     "vuejs",
@@ -31,15 +32,16 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22"
   },
   "dependencies": {
-    "fastify": "^4.28.1",
-    "ws": "^8.18.0"
+    "fastify": "^5.12.8",
+    "ws": "^8.22.1"
   },
   "devDependencies": {
-    "@types/node": "^22.5.1",
-    "@types/ws": "^8.5.12",
-    "typescript": "^5.5.4"
-  }
+    "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@12.18.0"
 }
