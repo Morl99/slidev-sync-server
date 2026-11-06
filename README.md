@@ -78,7 +78,7 @@ publication, including findings without an available fix.
 A nightly rebuild runs at 02:23 UTC and refreshes Alpine packages with
 `apk upgrade --no-cache`, without cached build layers. Dependabot proposes npm
 and GitHub Actions updates weekly and Docker digest updates daily; Node stays
-on major 24. Updates are reviewed through pull requests, not automatically merged.
+on major 24. Dependabot Patch/Minor updates (including digest updates classified as Patch)\nuse auto-merge after required checks pass. Major and unknown classifications\nremain manual; the metadata action verifies the Dependabot PR. No PR code is\nchecked out in the privileged auto-merge workflow.
 
 Publication compares a canonical package inventory (including package hashes)
 and a source/container configuration hash with the previous signed SBOM. No new
