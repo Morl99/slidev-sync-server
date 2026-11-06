@@ -100,7 +100,7 @@ jobs:
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           echo "image=$image" >> "$GITHUB_OUTPUT"
           changed=true
-          if docker buildx imagetools inspect "$image:latest" >/dev/null 2>&1; then
+          if docker buildx imagetools inspect "$image:latest" > "$RUNNER_TEMP/baseline.txt" 2>&1; then
             cosign verify-attestation --type cyclonedx \
               --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/container.yml@refs/(heads/main|tags/v[^/]+)$" \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com \
@@ -109,6 +109,9 @@ jobs:
             jq -cS '.predicate | {source: [.metadata.properties[]? | select(.name == "slidev.sourceHash") | .value], packages: [.components[] | {type,name,version,purl,hashes: ((.hashes // []) | sort_by(.alg,.content))}] | sort_by(.purl,.name,.version)}' "$RUNNER_TEMP/statement.json" > "$RUNNER_TEMP/previous-dependencies.json"
             previous=$(sha256sum "$RUNNER_TEMP/previous-dependencies.json" | cut -d' ' -f1)
             if [ "$previous" = "$FINGERPRINT" ]; then changed=false; fi
+          elif ! grep -Eqi 'manifest unknown|name unknown|not found' "$RUNNER_TEMP/baseline.txt"; then
+            cat "$RUNNER_TEMP/baseline.txt" >&2
+            exit 1
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           echo "Runtime dependency/source change: $changed" >> "$GITHUB_STEP_SUMMARY"
