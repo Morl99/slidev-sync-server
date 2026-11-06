@@ -25,7 +25,7 @@ docker run --rm --name slidev-sync-server \
 ```
 
 The server listens on port 8080. Configure the addon to use your server's address.
-Choose the matching transport in the addon. The container uses Node.js 24 on Alpine
+Choose the matching transport in the addon. The container uses Node.js on Alpine
 and runs as a non-root user. Published images currently target **linux/amd64**.
 
 ## Configuration
