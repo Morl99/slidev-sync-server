@@ -32,14 +32,14 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "dependencies": {
     "fastify": "^5.12.8",
     "ws": "^8.22.1"
   },
   "devDependencies": {
-    "@types/node": "^26.6.6",
+    "@types/node": "^24.19.2",
     "@types/ws": "^8.18.2",
     "typescript": "^7.0.2"
   },

@@ -8,7 +8,7 @@ You can use this server easily with the [slidev-addon-sync](https://github.com/S
 
 Get source code or git clone this repo.
 
-Requires Node.js 22 or newer and pnpm 12.18.0.
+Requires Node.js 24 and pnpm 12.18.0.
 
 Install dependencies:
 ```bash
