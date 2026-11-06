@@ -69,8 +69,23 @@ docker build -t slidev-sync-server:local .
 sh test/container-smoke.sh slidev-sync-server:local
 ```
 
-The container workflow tests pull requests without publishing. Pushes to `main`
-publish `latest` and `sha-<commit>` tags to GHCR after the image smoke tests pass.
-Version tags (`v*`) publish the corresponding version tag. The workflow can also
-be started manually on `main`. Publication uses the repository `GITHUB_TOKEN`.
-The first GHCR package may need its visibility changed to public in package settings.
+The container workflow builds and tests pull requests with read-only permissions.
+A separate job publishes the exact tested image to GHCR using GITHUB_TOKEN and
+keyless Cosign signatures plus a signed CycloneDX SBOM. No repository code is
+executed in the publishing job. HIGH/CRITICAL OS or library vulnerabilities block
+publication, including findings without an available fix.
+
+A nightly rebuild runs at 02:23 UTC and refreshes Alpine packages with
+`apk upgrade --no-cache`, without cached build layers. Dependabot proposes npm
+and GitHub Actions updates weekly and Docker digest updates daily; Node stays
+on major 24. Updates are reviewed through pull requests, not automatically merged.
+
+Publication compares a canonical package inventory (including package hashes)
+and a source/container configuration hash with the previous signed SBOM. No new
+image is published when both are unchanged, including on manual or tag runs.
+Image timestamps and SBOM timestamps do not affect the comparison. `latest`
+advances only after signing succeeds; each release also has a unique commit/run
+tag. A v* trigger adds its version tag only when a new image is published.
+First publication needs no baseline; an existing image with an invalid or missing
+SBOM signature blocks comparison. The first GHCR package may need its visibility
+changed to public in package settings. All images currently target linux/amd64.

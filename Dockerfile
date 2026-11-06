@@ -1,5 +1,5 @@
-# syntax=docker/dockerfile:1
-FROM node:24-alpine AS tooling
+FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS tooling
+RUN apk upgrade --no-cache
 WORKDIR /app
 RUN npm install --global pnpm@12.18.0
 COPY package.json pnpm-lock.yaml ./
@@ -14,7 +14,8 @@ RUN pnpm build && pnpm test
 FROM tooling AS dependencies
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
-FROM node:24-alpine AS runtime
+FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 AS runtime
+RUN apk upgrade --no-cache
 ENV NODE_ENV=production PORT=8080
 WORKDIR /app
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
