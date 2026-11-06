@@ -24,6 +24,6 @@ WORKDIR /app
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json LICENCE ./
-USER node
+USER 1000:1000
 EXPOSE 8080
 CMD ["node", "dist/index.js"]

@@ -107,3 +107,30 @@ ingress:
 The TLS secret must exist in the release namespace, or be provisioned by your
 certificate controller. Use the root path unless your proxy explicitly rewrites
 a prefix: the server has no configurable base path.
+
+## Pod and container security contexts
+
+`podSecurityContext` and `securityContext` pass Kubernetes security-context
+fields through to the Pod and server container respectively. Defaults retain
+non-root execution, RuntimeDefault seccomp, a read-only root filesystem, dropped
+capabilities and disabled privilege escalation.
+
+No UID, GID or fsGroup is set by the chart. OpenShift can assign IDs from the
+namespace range through its SCC admission policy. On Kubernetes without UID
+injection, use the image's numeric non-root user. Upgrade the server image to
+a build with that numeric user declaration as well as upgrading the chart;
+an older image with a named user may fail Kubernetes' non-root verification.
+
+If your cluster requires explicit IDs, configure values appropriate to its policy:
+
+```yaml
+podSecurityContext:
+  runAsUser: 1000853000
+  runAsGroup: 1000853000
+securityContext:
+  runAsNonRoot: true
+```
+
+These IDs are examples, not universal OpenShift defaults. Keep the secure defaults
+unless your cluster policy requires a change. Helm merges partial object overrides
+with the defaults; set an individual inherited key to `null` if it must be removed.

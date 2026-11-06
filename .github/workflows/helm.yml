@@ -37,6 +37,10 @@ jobs:
         run: |
           helm lint --strict charts/slidev-sync-server
           helm template smoke charts/slidev-sync-server > "$RUNNER_TEMP/sse.yaml"
+          ! grep -Eq 'runAs(User|Group):' "$RUNNER_TEMP/sse.yaml"
+          helm template smoke charts/slidev-sync-server --set podSecurityContext.runAsUser=1000853000 --set podSecurityContext.runAsGroup=1000853000 --set securityContext.runAsNonRoot=true > "$RUNNER_TEMP/custom-security.yaml"
+          grep -q 'runAsUser: 1000853000' "$RUNNER_TEMP/custom-security.yaml"
+          grep -q 'runAsGroup: 1000853000' "$RUNNER_TEMP/custom-security.yaml"
           helm template smoke charts/slidev-sync-server --set config.websocket=true > "$RUNNER_TEMP/ws.yaml"
           helm template smoke charts/slidev-sync-server --set ingress.enabled=true > "$RUNNER_TEMP/ingress.yaml"
       - name: Package once

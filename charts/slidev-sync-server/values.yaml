@@ -46,3 +46,14 @@ ingress:
   tls: []
   # - secretName: slidev-sync-tls
   #   hosts: [slides.example.com]
+
+# Leave UID/GID selection to the image or cluster admission policy (e.g. OpenShift).
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

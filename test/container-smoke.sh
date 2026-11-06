@@ -7,7 +7,13 @@ trap cleanup EXIT INT TERM
 for mode in sse ws; do
   websocket=''
   if [ "$mode" = ws ]; then websocket=true; fi
-  container=$(docker run -d -e "WS=$websocket" "$image")
+  if [ -n "${SMOKE_USER:-}" ]; then
+    set -- --user "$SMOKE_USER"
+  else
+    set --
+  fi
+  container=$(docker run -d --read-only --cap-drop=ALL \
+    --security-opt=no-new-privileges "$@" -e "WS=$websocket" "$image")
   for attempt in $(seq 1 30); do
     if docker exec "$container" node -e '
       const net = require("node:net");
