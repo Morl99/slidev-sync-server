@@ -34,15 +34,33 @@ jobs:
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
           PACKAGE_ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
           DEPENDENCY_NAMES: ${{ steps.metadata.outputs.dependency-names }}
-          PREVIOUS_VERSION: ${{ steps.metadata.outputs.previous-version }}
-          NEW_VERSION: ${{ steps.metadata.outputs.new-version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          # Docker digest updates keep the same tag (e.g. 24-alpine).
-          # Only allow this exception for the Node base image.
-          if [[ "$PACKAGE_ECOSYSTEM" == "docker" && "$DEPENDENCY_NAMES" == "node" && -n "$PREVIOUS_VERSION" && "$PREVIOUS_VERSION" == "$NEW_VERSION" ]]; then
-            gh pr merge "$PR_URL" --auto --squash --match-head-commit "$HEAD_SHA"
-            exit 0
+          # Dependabot's version fields may contain digests rather than the Docker tag.
+          # Validate the actual PR patch; never execute code from the PR.
+          if [[ "$PACKAGE_ECOSYSTEM" == "docker" && "$DEPENDENCY_NAMES" == "node" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate > "$RUNNER_TEMP/pr-files.json"
+            if python3 - "$RUNNER_TEMP/pr-files.json" <<'PY'
+          import json, re, sys
+          files = json.load(open(sys.argv[1]))
+          if len(files) != 1 or files[0].get("filename") != "Dockerfile" or files[0].get("status") != "modified":
+              sys.exit(1)
+          patch = files[0].get("patch", "")
+          removed = [line[1:] for line in patch.splitlines() if line.startswith("-") and not line.startswith("---")]
+          added = [line[1:] for line in patch.splitlines() if line.startswith("+") and not line.startswith("+++")]
+          pattern = re.compile(r"FROM node:24-alpine@sha256:[0-9a-f]{64} AS (tooling|runtime)$")
+          normalize = lambda line: re.sub(r"@sha256:[0-9a-f]{64}", "@sha256:DIGEST", line)
+          valid = (len(removed) == len(added) == 2
+                   and all(pattern.fullmatch(line) for line in removed + added)
+                   and sorted(map(normalize, removed)) == sorted(map(normalize, added))
+                   and sorted(removed) != sorted(added))
+          sys.exit(0 if valid else 1)
+          PY
+            then
+              gh pr merge "$PR_URL" --auto --squash --match-head-commit "$HEAD_SHA"
+              exit 0
+            fi
           fi
           case "$UPDATE_TYPE" in
             version-update:semver-patch|version-update:semver-minor)
@@ -50,6 +68,8 @@ jobs:
               ;;
             *)
               # Unknown classifications and Major updates require manual merging.
-              gh pr merge "$PR_URL" --disable-auto
+              if [[ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" == "true" ]]; then
+                gh pr merge "$PR_URL" --disable-auto
+              fi
               ;;
           esac
