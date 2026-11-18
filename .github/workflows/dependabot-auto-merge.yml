@@ -32,8 +32,18 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          PACKAGE_ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          DEPENDENCY_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+          PREVIOUS_VERSION: ${{ steps.metadata.outputs.previous-version }}
+          NEW_VERSION: ${{ steps.metadata.outputs.new-version }}
         run: |
           set -euo pipefail
+          # Docker digest updates keep the same tag (e.g. 24-alpine).
+          # Only allow this exception for the Node base image.
+          if [[ "$PACKAGE_ECOSYSTEM" == "docker" && "$DEPENDENCY_NAMES" == "node" && -n "$PREVIOUS_VERSION" && "$PREVIOUS_VERSION" == "$NEW_VERSION" ]]; then
+            gh pr merge "$PR_URL" --auto --squash --match-head-commit "$HEAD_SHA"
+            exit 0
+          fi
           case "$UPDATE_TYPE" in
             version-update:semver-patch|version-update:semver-minor)
               gh pr merge "$PR_URL" --auto --squash --match-head-commit "$HEAD_SHA"
